@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VORTEX — Sound System</title>
+    <!-- Шрифти -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Іконки -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-dark: #05070e;
+            --panel-bg: rgba(12, 16, 32, 0.85);
+            --border-glow: rgba(0, 243, 255, 0.25);
+            --cyan: #00f3ff;
+            --magenta: #ff0055;
+            --purple: #7928ca;
+            --lime: #00ff66;
+            --text-main: #ffffff;
+            --text-muted: #8292b4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Rajdhani', sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding-bottom: 140px;
+            position: relative;
+        }
+
+        /* Скануючі лінії */
+        body::before {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 999;
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+        }
+
+        /* Фон сітка */
+        .cyber-grid {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background-image: 
+                linear-gradient(to right, rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: -2;
+        }
+
+        .glow-blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(140px);
+            opacity: 0.35;
+            z-index: -1;
+            animation: pulse 12s infinite alternate ease-in-out;
+        }
+
+        .blob-1 { width: 500px; height: 500px; background: var(--purple); top: -150px; left: -100px; }
+        .blob-2 { width: 450px; height: 450px; background: var(--magenta); bottom: 100px; right: -100px; animation-delay: -4s; }
+
+        @keyframes pulse {
+            0% { transform: scale(1) translate(0, 0); }
+            50% { transform: scale(1.2) translate(30px, -20px); }
+            100% { transform: scale(0.9) translate(-20px, 30px); }
+        }
+
+        /* Шапка сайту */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 6%;
+            background: rgba(5, 7, 14, 0.85);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--border-glow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: 3px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-shadow: 0 0 10px var(--cyan), 0 0 20px var(--cyan);
+        }
+
+        .logo span { color: var(--magenta); text-shadow: 0 0 10px var(--magenta); }
+        .logo i { color: var(--cyan); animation: rotateLogo 8s linear infinite; }
+
+        @keyframes rotateLogo {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        /* Кнопка донату */
+        .donate-btn {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: white;
+            background: linear-gradient(135deg, var(--lime), #00b347);
+            padding: 10px 22px;
+            border-radius: 30px;
+            text-decoration: none;
+            box-shadow: 0 0 15px rgba(0, 255, 102, 0.4);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.3s;
+            animation: donatePulse 2s infinite;
+        }
+
+        .donate-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(0, 255, 102, 0.8);
+        }
+
+        @keyframes donatePulse {
+            0% { box-shadow: 0 0 15px rgba(0, 255, 102, 0.4); }
+            50% { box-shadow: 0 0 25px rgba(0, 255, 102, 0.8); }
+            100% { box-shadow: 0 0 15px rgba(0, 255, 102, 0.4); }
+        }
+
+        /* Контейнер */
+        .container {
+            max-width: 1280px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .hero {
+            position: relative;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-glow);
+            border-left: 4px solid var(--cyan);
+            border-right: 4px solid var(--magenta);
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.1);
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.8rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+        }
+
+        @media (max-width: 992px) {
+            .main-grid { grid-template-columns: 1fr; }
+        }
+
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i { color: var(--cyan); }
+
+        .track-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-glow);
+            padding: 16px 22px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .track-card:hover, .track-card.active {
+            background: rgba(18, 24, 48, 0.9);
+            border-color: var(--cyan);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.15);
+        }
+
+        .track-info-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .track-cover {
+            width: 55px;
+            height: 55px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .track-meta h4 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            margin-bottom: 3px;
+        }
+
+        .track-meta p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .play-btn-circle {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            transition: 0.3s;
+        }
+
+        .track-card:hover .play-btn-circle, .track-card.active .play-btn-circle {
+            background: var(--magenta);
+            border-color: var(--magenta);
+            box-shadow: 0 0 12px var(--magenta);
+        }
+
+        .terminal-box {
+            background: rgba(5, 8, 18, 0.9);
+            border: 1px solid var(--border-glow);
+            border-radius: 12px;
+            padding: 22px;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+        }
+
+        .lyrics-content {
+            color: #a0aec0;
+            font-size: 0.95rem;
+            line-height: 1.7;
+            white-space: pre-line;
+            max-height: 380px;
+            overflow-y: auto;
+        }
+
+        /* Нижній плеєр */
+        .player-bar {
+            position: fixed;
+            bottom: 0; left: 0; width: 100%;
+            background: rgba(5, 7, 14, 0.95);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border-glow);
+            padding: 15px 5%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 1000;
+            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.8);
+        }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            width: 300px;
+        }
+
+        .player-info h4 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            color: var(--cyan);
+        }
+
+        .player-mid {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            width: 45%;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .ctrl-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .ctrl-btn:hover { color: var(--cyan); text-shadow: 0 0 10px var(--cyan); }
+
+        .ctrl-btn.play-main {
+            width: 45px; height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--cyan), var(--magenta));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
+        }
+
+        .ctrl-btn.play-main:hover {
+            transform: scale(1.08);
+            box-shadow: 0 0 22px var(--magenta);
+        }
+
+        .progress-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .time-text {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            width: 40px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--cyan), var(--magenta));
+            border-radius: 10px;
+            box-shadow: 0 0 10px var(--cyan);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="cyber-grid"></div>
+    <div class="glow-blob blob-1"></div>
+    <div class="glow-blob blob-2"></div>
+
+    <header>
+        <div class="logo">
+            <i class="fa-solid fa-compact-disc"></i> VORTEX <span>AUDIO</span>
+        </div>
+        <div class="header-right">
+            <!-- Замініть ТУТ_ПОСИЛАННЯ_НА_ДОНАТ на ваше посилання -->
+            <a href="ТУТ_ПОСИЛАННЯ_НА_ДОНАТ" target="_blank" class="donate-btn">
+                <i class="fa-solid fa-heart"></i> ДОНАТ
+            </a>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="hero">
+            <h1>VORTEX <span style="color: var(--cyan); text-shadow: 0 0 15px var(--cyan);">SOUND SYSTEM</span></h1>
+            <p style="color: var(--text-muted); font-size: 1.1rem;">Офіційний трек: Еван Колін — Рожеві Троянди</p>
+        </div>
+
+        <div class="main-grid">
+            <div>
+                <h2 class="section-title"><i class="fa-solid fa-list-ul"></i> ПЛЕЙЛИСТ</h2>
+                <div class="track-card active" id="track-card-btn">
+                    <div class="track-info-left">
+                        <img src="https://img.youtube.com/vi/4kpouGNIjYY/hqdefault.jpg" class="track-cover" alt="Cover">
+                        <div class="track-meta">
+                            <h4>Рожеві Троянди</h4>
+                            <p>Еван Колін</p>
+                        </div>
+                    </div>
+                    <div class="play-btn-circle">
+                        <i class="fa-solid fa-play" id="card-play-icon"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h2 class="section-title"><i class="fa-solid fa-terminal"></i> ТЕКСТ ПІСНІ</h2>
+                <div class="terminal-box">
+                    <h3 style="font-family: Orbitron; color: var(--cyan); margin-bottom: 10px;">// Рожеві Троянди</h3>
+                    <div class="lyrics-content">
+Стоп стоперо! Давай почнемо не так...
+Ти була грім серед ясного неба,
+Дівчино моя, цією весною закохався в тебе!
+Твій поцілунок — біда,
+Очі такі нелегальні, телефонуйте ментам!
+
+Братік, тобі я хотів сказати —
+Мене без неї нема!
+
+Рожеві троянди, червоні троянди,
+А наші дівчата — це діаманти!
+Таких більше немає,
+А вітер десь гуляє...
+
+Рожеві троянди, червоні троянди,
+А наші дівчата — це діаманти!
+Таких більше немає,
+І вітер десь гуляє...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Нижній плеєр -->
+    <div class="player-bar">
+        <div class="player-info">
+            <img src="https://img.youtube.com/vi/4kpouGNIjYY/hqdefault.jpg" style="width: 48px; height: 48px; border-radius: 6px; border: 1px solid var(--cyan);" alt="Cover">
+            <div>
+                <h4>Рожеві Троянди</h4>
+                <p style="color: var(--text-muted); font-size: 0.85rem;">Еван Колін</p>
+            </div>
+        </div>
+
+        <div class="player-mid">
+            <div class="controls">
+                <button class="ctrl-btn play-main" id="play-btn"><i class="fa-solid fa-play" id="play-icon"></i></button>
+            </div>
+            <div class="progress-wrapper">
+                <span class="time-text" id="current-time">0:00</span>
+                <div class="progress-bar" id="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <span class="time-text" id="total-time">0:00</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Аудіоплеєр для локального файлу -->
+    <audio id="audio-player" src="music/rozevi_troyandy.mp3"></audio>
+
+    <script>
+        // Захист коду для GitHub
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.onkeydown = function(e) {
+            if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || (e.ctrlKey && e.keyCode == 85)) {
+                return false;
+            }
+        };
+
+        const audio = document.getElementById('audio-player');
+        const playBtn = document.getElementById('play-btn');
+        const playIcon = document.getElementById('play-icon');
+        const cardPlayIcon = document.getElementById('card-play-icon');
+        const trackCardBtn = document.getElementById('track-card-btn');
+        const progressBar = document.getElementById('progress-bar');
+        const progressFill = document.getElementById('progress-fill');
+        const currentTimeEl = document.getElementById('current-time');
+        const totalTimeEl = document.getElementById('total-time');
+
+        let isPlaying = false;
+
+        function togglePlay() {
+            if (isPlaying) {
+                audio.pause();
+                isPlaying = false;
+                playIcon.className = 'fa-solid fa-play';
+                cardPlayIcon.className = 'fa-solid fa-play';
+            } else {
+                audio.play();
+                isPlaying = true;
+                playIcon.className = 'fa-solid fa-pause';
+                cardPlayIcon.className = 'fa-solid fa-pause';
+            }
+        }
+
+        playBtn.onclick = togglePlay;
+        trackCardBtn.onclick = togglePlay;
+
+        audio.ontimeupdate = (e) => {
+            const { currentTime, duration } = e.srcElement;
+            if (isNaN(duration)) return;
+            
+            const progressPercent = (currentTime / duration) * 100;
+            progressFill.style.width = `${progressPercent}%`;
+
+            const currentMin = Math.floor(currentTime / 60);
+            const currentSec = Math.floor(currentTime % 60);
+            currentTimeEl.innerText = `${currentMin}:${currentSec < 10 ? '0' : ''}${currentSec}`;
+
+            const totalMin = Math.floor(duration / 60);
+            const totalSec = Math.floor(duration % 60);
+            totalTimeEl.innerText = `${totalMin}:${totalSec < 10 ? '0' : ''}${totalSec}`;
+        };
+
+        audio.onended = () => {
+            isPlaying = false;
+            playIcon.className = 'fa-solid fa-play';
+            cardPlayIcon.className = 'fa-solid fa-play';
+            progressFill.style.width = '0%';
+        };
+
+        progressBar.onclick = (e) => {
+            const width = progressBar.clientWidth;
+            const clickX = e.offsetX;
+            const duration = audio.duration;
+            if (duration) {
+                audio.currentTime = (clickX / width) * duration;
+            }
+        };
+    </script>
+</body>
+</html>
